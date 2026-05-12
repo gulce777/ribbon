@@ -10,7 +10,7 @@ repository looking clean, please follow these simple guidelines.
 just like the design of the editor itself, our repository is entirely lowercase.
 - commit messages must be lowercase.
 - pull request titles must be lowercase.
-- file names must be lowercase.
+- file names must be lowercase (if possible).
 
 ### 2. commit messages.
 
