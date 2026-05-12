@@ -4,6 +4,7 @@
 //! shapes and definitions that the rest of the editor uses.
 
 pub mod error;
+pub mod event;
 pub mod ids;
 pub mod layout;
 pub mod primitives;
