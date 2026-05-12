@@ -118,6 +118,37 @@ impl std::fmt::Display for Point {
     }
 }
 
+/// a 2d size, representing width and height.
+/// typically used for panel dimensions and layout bounds.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Size {
+    pub width: f32,
+    pub height: f32,
+}
+
+impl Size {
+    /// creates a new size.
+    #[inline]
+    pub fn new(width: f32, height: f32) -> Self {
+        Self { width, height }
+    }
+
+    /// creates a size with zero width and height.
+    #[inline]
+    pub fn zero() -> Self {
+        Self {
+            width: 0.0,
+            height: 0.0,
+        }
+    }
+}
+
+impl std::fmt::Display for Size {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}x{}", self.width, self.height)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
