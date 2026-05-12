@@ -26,7 +26,7 @@ ribbon comes with a `runtime/` directory. inside it:
 
 ```
 runtime/
-├── core/       ← ribbon's api guarantees. do not modify.
+├── core/       <- ribbon's api guarantees. do not modify.
 └── default/    <- reference implementations. modify freely.
 ```
 
@@ -66,3 +66,7 @@ special treatment. lua drew them, and lua can undraw them.
 **explicit is better.** `ui.px(200)` says what it means. `200` doesn't.
 
 **quiet defaults.** the default config is minimal on purpose. it gets out of your way.
+
+## where to go next?
+
+- [architecture.md](architecture.md) - the rust/lua split in detail
