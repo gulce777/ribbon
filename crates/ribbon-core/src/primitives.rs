@@ -149,6 +149,60 @@ impl std::fmt::Display for Size {
     }
 }
 
+/// a 2d rectangle, defined by a position (x, y) and a size (width, height).
+/// used for panel boundaries, layout calculation, and collision/hover detection.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Rect {
+    pub position: Point,
+    pub size: Size,
+}
+
+impl Rect {
+    #[inline]
+    pub fn new(position: Point, size: Size) -> Self {
+        Self { position, size }
+    }
+
+    pub fn from_values(x: f32, y: f32, width: f32, height: f32) -> Self {
+        Self {
+            position: Point::new(x, y),
+            size: Size::new(width, height),
+        }
+    }
+
+    #[inline]
+    pub fn zero() -> Self {
+        Self {
+            position: Point::zero(),
+            size: Size::zero(),
+        }
+    }
+
+    #[inline]
+    pub fn right(self) -> f32 {
+        self.position.x + self.size.width as f32
+    }
+
+    #[inline]
+    pub fn bottom(self) -> f32 {
+        self.position.y + self.size.height as f32
+    }
+
+    #[inline]
+    pub fn contains_point(self, point: Point) -> bool {
+        point.x >= self.position.x
+            && point.x <= self.position.x + self.size.width
+            && point.y >= self.position.y
+            && point.y <= self.position.y + self.size.height
+    }
+}
+
+impl std::fmt::Display for Rect {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "[pos: {}, size: {}]", self.position, self.size)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
