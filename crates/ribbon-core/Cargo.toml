@@ -1,5 +1,6 @@
 [package]
 name = "ribbon-core"
+description = "the core types for ribbon."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
