@@ -7,5 +7,6 @@ license.workspace = true
 
 [dependencies]
 ribbon-core.workspace = true
+taffy = "0.10.1"
 wgpu.workspace = true
 winit.workspace = true
