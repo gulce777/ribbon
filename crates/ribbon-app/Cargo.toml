@@ -1,11 +1,13 @@
 [package]
-name = "ribbon-renderer"
-description = "the memory of the ribbon editor."
+name = "ribbon-app"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
 ribbon-core.workspace = true
-wgpu.workspace = true
+ribbon-renderer.workspace = true
+
+pollster = "0.4.0"
 winit.workspace = true
+wgpu.workspace = true

@@ -3,6 +3,7 @@ members = [
     "crates/ribbon-core",
     "crates/ribbon-buffer",
     "crates/ribbon-renderer",
+    "crates/ribbon-app",
 ]
 resolver = "2"
 
@@ -17,3 +18,5 @@ ribbon-buffer = { path = "crates/ribbon-buffer" }
 ribbon-renderer = { path = "crates/ribbon-renderer" }
 
 thiserror = "2.0.18"
+wgpu = "29.0.3"
+winit = "0.30.13"
