@@ -1413,6 +1413,7 @@ dependencies = [
 name = "ribbon-renderer"
 version = "0.1.0"
 dependencies = [
+ "bytemuck",
  "ribbon-core",
  "taffy",
  "wgpu",
