@@ -12,7 +12,7 @@ just like the design of the editor itself, our repository is entirely lowercase.
 - pull request titles must be lowercase.
 - file names must be lowercase.
 
-### 2. commit messages
+### 2. commit messages.
 
 we do not use strict conventional commits (like `feat:` or `chore:`). instead, we use
 simple, plaing english verbs followed by a colon.
@@ -37,11 +37,11 @@ if your change only affects a specific part of the editor, you can add a scope i
 - `Fixed crash`
 - `feat: Added theme`
 
-### 3. opening a pull request
+### 3. opening a pull request.
 
 when you open a pr, keep the description short and to the point.
 
-### 4. code style
+### 4. code style.
 
 - for rust: run `cargo fmt` before committing.
 - for lua: keep the code clean, use soft indents (spaces, not tabs).
