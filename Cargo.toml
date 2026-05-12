@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/ribbon-core"]
+members = ["crates/ribbon-core", "crates/ribbon-buffer"]
 resolver = "2"
 
 [workspace.package]

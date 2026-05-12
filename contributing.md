@@ -21,7 +21,7 @@ please use one of these verbs:
 - `add:` (for new features or files)
 - `fix:` (for bug fixes)
 - `update:` (for refactoring or improvements)
-- `clean:` (for removign dead code or unused files)
+- `clean:` (for removing dead code or unused files)
 - `docs:` (for readme or comment changes)
 
 **using scopes (optional but helpful):**

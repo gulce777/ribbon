@@ -1,0 +1,10 @@
+[package]
+name = "ribbon-buffer"
+description = "the memory of the ribbon editor."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ribbon-core.workspace = true
+ropey = "1.6.1"
