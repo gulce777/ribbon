@@ -4,4 +4,8 @@
 //! shapes and definitions that the rest of the editor uses.
 
 pub mod error;
+pub mod ids;
 pub mod primitives;
+
+pub use error::{Result, RibbonError};
+pub use primitives::{Point, Position, Range, Size};
