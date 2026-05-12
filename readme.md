@@ -1,18 +1,12 @@
 <div align="center">
     <img src="logo.svg" alt="ribbon logo" width="100%"/>
     <br/> <br/>
-    <a href="license">
-        <img src="https://img.shields.io/badge/license-unlicense-e5a4b4?style=flat-square&labelColor=1a1819&logo=unlicense&logoColor=e5a4b4" alt="license">
-    </a>
-    <a href="https://www.rust-lang.org/">
-        <img src="https://img.shields.io/badge/core-rust-e5a4b4?style=flat-square&labelColor=1a1819&logo=rust&logoColor=e5a4b4" alt="rust">
-    </a>
-    <a href="https://www.lua.org/">
-        <img src="https://img.shields.io/badge/scripting-lua-e5a4b4?style=flat-square&labelColor=1a1819&logo=lua&logoColor=e5a4b4" alt="lua">
-    </a>
-    <a href="">
-        <img src="https://img.shields.io/badge/made%20with-%E2%99%A5-e5a4b4?style=flat-square&labelColor=1a1819" alt="made with love!">
-    </a>
+
+[![license](https://img.shields.io/badge/license-mit-e5a4b4?style=flat-square&labelColor=1a1819)](license)    
+[![rust](https://img.shields.io/badge/core-rust-e5a4b4?style=flat-square&labelColor=1a1819&logo=rust&logoColor=e5a4b4)](https://www.rust-lang.org/)
+[![lua](https://img.shields.io/badge/scripting-lua-e5a4b4?style=flat-square&labelColor=1a1819&logo=lua&logoColor=e5a4b4)](https://www.lua.org/)
+[![made with love!](https://img.shields.io/badge/made%20with-%E2%99%A5-e5a4b4?style=flat-square&labelColor=1a1819)](#)
+
 </div>
 
 ---
