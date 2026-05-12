@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "crates/ribbon-core"
-]
+members = ["crates/ribbon-core"]
 resolver = "2"
 
 [workspace.package]
@@ -11,3 +9,5 @@ license = "Unlicense"
 
 [workspace.dependencies]
 ribbon-core = { path = "crates/ribbon-core" }
+
+thiserror = "2.0.18"
