@@ -2,7 +2,7 @@
     <img src="logo.svg" alt="ribbon logo" width="100%"/>
     <br/> <br/>
 
-[![license](https://img.shields.io/badge/license-mit-e5a4b4?style=flat-square&labelColor=1a1819)](license)    
+[![license](https://img.shields.io/badge/license-mit-e5a4b4?style=flat-square&labelColor=1a1819)](license)
 [![rust](https://img.shields.io/badge/core-rust-e5a4b4?style=flat-square&labelColor=1a1819&logo=rust&logoColor=e5a4b4)](https://www.rust-lang.org/)
 [![lua](https://img.shields.io/badge/scripting-lua-e5a4b4?style=flat-square&labelColor=1a1819&logo=lua&logoColor=e5a4b4)](https://www.lua.org/)
 [![made with love!](https://img.shields.io/badge/made%20with-%E2%99%A5-e5a4b4?style=flat-square&labelColor=1a1819)](#)
