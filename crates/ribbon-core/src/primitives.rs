@@ -90,6 +90,34 @@ impl std::fmt::Display for Range {
     }
 }
 
+/// a point in 2d space, used for ui coordinates and rendering.
+/// coordinats are typically in physical or logical pixels.
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
+pub struct Point {
+    pub x: f32,
+    pub y: f32,
+}
+
+impl Point {
+    /// creates a new point.
+    #[inline]
+    pub fn new(x: f32, y: f32) -> Self {
+        Self { x, y }
+    }
+
+    /// returns a point at the origin (0.0, 0.0).
+    #[inline]
+    pub fn zero() -> Self {
+        Self { x: 0.0, y: 0.0 }
+    }
+}
+
+impl std::fmt::Display for Point {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "({}px, {}px)", self.x, self.y)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
