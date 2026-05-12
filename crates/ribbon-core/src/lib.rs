@@ -5,6 +5,7 @@
 
 pub mod error;
 pub mod ids;
+pub mod layout;
 pub mod primitives;
 
 pub use error::{Result, RibbonError};
