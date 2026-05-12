@@ -1,5 +1,9 @@
 [workspace]
-members = ["crates/ribbon-core", "crates/ribbon-buffer"]
+members = [
+    "crates/ribbon-core",
+    "crates/ribbon-buffer",
+    "crates/ribbon-renderer",
+]
 resolver = "2"
 
 [workspace.package]
@@ -9,5 +13,7 @@ license = "Unlicense"
 
 [workspace.dependencies]
 ribbon-core = { path = "crates/ribbon-core" }
+ribbon-buffer = { path = "crates/ribbon-buffer" }
+ribbon-renderer = { path = "crates/ribbon-renderer" }
 
 thiserror = "2.0.18"

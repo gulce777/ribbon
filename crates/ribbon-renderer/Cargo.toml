@@ -1,0 +1,11 @@
+[package]
+name = "ribbon-renderer"
+description = "the memory of the ribbon editor."
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+ribbon-core.workspace = true
+wgpu = "29.0.3"
+winit = "0.30.13"
