@@ -8,10 +8,10 @@ use std::io::{self, Stdout};
 
 use crossterm::{
     execute,
-    terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
+    terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
 };
-use ratatui::{backend::CrosstermBackend, Terminal as RatatuiTerminal};
-use ribbon_core::{RibbonError, Result};
+use ratatui::{Terminal as RatatuiTerminal, backend::CrosstermBackend};
+use ribbon_core::{Result, RibbonError};
 
 pub struct Terminal {
     pub inner: RatatuiTerminal<CrosstermBackend<Stdout>>,

@@ -6,20 +6,15 @@
 use std::time::Duration;
 
 use ratatui::{
+    Frame,
     layout::{Position, Rect},
     style::{Color as RColor, Modifier, Style},
     text::Span,
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
-use ribbon_core::{color::Color, event::Event, Result};
+use ribbon_core::{Result, color::Color, event::Event};
 
-use crate::{
-    draw::DrawCommand,
-    event::next_event,
-    layout::LayoutEngine,
-    terminal::Terminal,
-};
+use crate::{draw::DrawCommand, event::next_event, layout::LayoutEngine, terminal::Terminal};
 
 pub struct Renderer {
     pub terminal: Terminal,
@@ -71,24 +66,45 @@ fn render(frame: &mut Frame, commands: &[DrawCommand]) {
                 frame.render_widget(block, frame.area());
             }
 
-            DrawCommand::Block { x, y, width, height, fg, bg, border } => {
+            DrawCommand::Block {
+                x,
+                y,
+                width,
+                height,
+                fg,
+                bg,
+                border,
+            } => {
                 let area = Rect::new(*x, *y, *width, *height);
-                let mut block = Block::default()
-                    .style(Style::default().fg(to_rcolor(fg)).bg(to_rcolor(bg)));
+                let mut block =
+                    Block::default().style(Style::default().fg(to_rcolor(fg)).bg(to_rcolor(bg)));
                 if *border {
                     block = block.borders(Borders::ALL);
                 }
                 frame.render_widget(block, area);
             }
 
-            DrawCommand::Text { x, y, max_width, content, fg, bg, bold, italic } => {
+            DrawCommand::Text {
+                x,
+                y,
+                max_width,
+                content,
+                fg,
+                bg,
+                bold,
+                italic,
+            } => {
                 let area = Rect::new(*x, *y, *max_width, 1);
                 let mut style = Style::default().fg(to_rcolor(fg));
                 if let Some(bg_color) = bg {
                     style = style.bg(to_rcolor(bg_color));
                 }
-                if *bold   { style = style.add_modifier(Modifier::BOLD); }
-                if *italic { style = style.add_modifier(Modifier::ITALIC); }
+                if *bold {
+                    style = style.add_modifier(Modifier::BOLD);
+                }
+                if *italic {
+                    style = style.add_modifier(Modifier::ITALIC);
+                }
                 let para = Paragraph::new(Span::styled(content.as_str(), style));
                 frame.render_widget(para, area);
             }

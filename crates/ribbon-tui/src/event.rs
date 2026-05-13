@@ -11,9 +11,9 @@ use crossterm::event::{
     MouseEventKind,
 };
 use ribbon_core::{
+    Result, RibbonError,
     event::{Event, Modifiers},
     primitives::{Point, Size},
-    RibbonError, Result,
 };
 
 /// polls for the next crossterm event with a timeout.
