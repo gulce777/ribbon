@@ -1,10 +1,11 @@
 [package]
-name = "ribbon-app"
+name = "ribbon-lua"
+description = "the lua bridge for ribbon."
 version.workspace = true
 edition.workspace = true
 license.workspace = true
 
 [dependencies]
 ribbon-core.workspace = true
-ribbon-tui.workspace  = true
-ribbon-lua.workspace  = true
+ribbon-tui.workspace = true
+mlua.workspace = true

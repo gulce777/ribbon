@@ -1,10 +1,8 @@
-//! layout definitions — terminal-native constraint system.
+//! layout definitions.
 //!
 //! this module provides the building blocks for describing ui layout.
 //! constraints are expressed in cell units (columns / rows), which map
 //! directly to ratatui's layout system in `ribbon-tui`.
-//!
-//! lua builds `NodeStyle` values; rust computes the actual cell rects.
 
 /// the direction in which children are laid out.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -31,6 +29,9 @@ pub enum Constraint {
     Min(u16),
     /// a maximum number of cells; the node may shrink smaller.
     Max(u16),
+    /// a ratio of the parent's available space.
+    /// `Ratio(1, 3)` means "take one third".
+    Ratio(u32, u32),
 }
 
 impl Default for Constraint {
@@ -73,6 +74,14 @@ impl NodeStyle {
             ..Default::default()
         }
     }
+
+    /// a node that takes a ratio of its parent.
+    pub fn ratio(a: u32, b: u32) -> Self {
+        Self {
+            constraint: Constraint::Ratio(a, b),
+            ..Default::default()
+        }
+    }
 }
 
 #[cfg(test)]
@@ -90,5 +99,11 @@ mod tests {
     fn length_helper() {
         let s = NodeStyle::length(40);
         assert_eq!(s.constraint, Constraint::Length(40));
+    }
+
+    #[test]
+    fn ratio_helper() {
+        let s = NodeStyle::ratio(1, 3);
+        assert_eq!(s.constraint, Constraint::Ratio(1, 3));
     }
 }

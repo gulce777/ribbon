@@ -36,7 +36,6 @@ impl Terminal {
 }
 
 impl Drop for Terminal {
-    /// always restore the terminal — even on panic.
     fn drop(&mut self) {
         let _ = disable_raw_mode();
         let _ = execute!(self.inner.backend_mut(), LeaveAlternateScreen);
