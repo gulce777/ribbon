@@ -1,96 +1,68 @@
-use ribbon_renderer::engine::RenderEngine;
-use winit::{
-    application::ApplicationHandler,
-    event::WindowEvent,
-    event_loop::{ActiveEventLoop, EventLoop},
-    window::{Window, WindowId},
-};
+use std::time::Duration;
 
-#[derive(Default)]
-struct App {
-    window: Option<&'static Window>,
-    engine: Option<RenderEngine<'static>>,
-}
+use ribbon_core::{color::Color, event::Event};
+use ribbon_tui::{DrawCommand, Renderer};
 
-impl ApplicationHandler for App {
-    fn resumed(&mut self, event_loop: &ActiveEventLoop) {
-        if self.window.is_none() {
-            let window_attrs = Window::default_attributes()
-                .with_title("Ribbon")
-                .with_inner_size(winit::dpi::LogicalSize::new(1024.0, 768.0));
+fn main() -> ribbon_core::Result<()> {
+    let mut renderer = Renderer::new()?;
 
-            let window = Box::leak(Box::new(event_loop.create_window(window_attrs).unwrap()));
-            self.window = Some(window);
+    loop {
+        let (cols, rows) = renderer.size()?;
+        let commands = build_frame(cols, rows);
+        renderer.draw_frame(&commands)?;
 
-            let engine = pollster::block_on(RenderEngine::new(window))
-                .expect("failed to initialize the render engine");
-            self.engine = Some(engine);
-
-            window.request_redraw();
-        }
-    }
-
-    fn window_event(&mut self, event_loop: &ActiveEventLoop, _id: WindowId, event: WindowEvent) {
-        let Some(engine) = self.engine.as_mut() else {
-            return;
-        };
-        let Some(window) = self.window else { return };
-
-        match event {
-            WindowEvent::CloseRequested => {
-                event_loop.exit();
-            }
-
-            WindowEvent::Resized(physical_size) => {
-                engine.resize(physical_size);
-                window.request_redraw();
-            }
-
-            WindowEvent::RedrawRequested => {
-                let (surface_texture, texture_view, mut encoder) = match engine.begin_frame() {
-                    Ok(frame) => frame,
-                    Err(e) => {
-                        eprintln!("frame error: {:?}", e);
-                        return;
-                    }
-                };
-
-                {
-                    let _render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
-                        label: Some("ribbon_clear_pass"),
-                        color_attachments: &[Some(wgpu::RenderPassColorAttachment {
-                            view: &texture_view,
-                            resolve_target: None,
-                            ops: wgpu::Operations {
-                                load: wgpu::LoadOp::Clear(wgpu::Color {
-                                    r: 0.0,
-                                    g: 0.0,
-                                    b: 0.0,
-                                    a: 255.0,
-                                }),
-                                store: wgpu::StoreOp::Store,
-                            },
-                            depth_slice: None,
-                        })],
-                        depth_stencil_attachment: None,
-                        timestamp_writes: None,
-                        occlusion_query_set: None,
-                        multiview_mask: None,
-                    });
+        if let Some(event) = renderer.next_event(Duration::from_millis(16))? {
+            match event {
+                Event::Quit => break,
+                Event::KeyPress(ref k) if k == "<c-c>" || k == "<c-q>" => break,
+                Event::Resize(size) => {
+                    let _ = size;
                 }
-
-                engine.submit_frame(surface_texture, encoder);
+                _ => {}
             }
-            _ => {}
         }
     }
+
+    Ok(())
 }
 
-fn main() {
-    let event_loop = EventLoop::new().unwrap();
-    event_loop.set_control_flow(winit::event_loop::ControlFlow::Wait);
+/// temporary test frame.
+fn build_frame(cols: u16, rows: u16) -> Vec<DrawCommand> {
+    let bg         = Color::from_hex("#1A1819").unwrap();
+    let sidebar_bg = Color::from_hex("#111010").unwrap();
+    let label_pink = Color::from_hex("#E5A4B4").unwrap();
+    let label_dim  = Color::rgba(0.55, 0.52, 0.53, 1.0);
 
-    let mut app = App::default();
+    let sidebar_w: u16 = 20; // cells
 
-    event_loop.run_app(&mut app).unwrap();
+    vec![
+        // background
+        DrawCommand::Clear(bg),
+
+        // sidebar panel
+        DrawCommand::Block {
+            x: 0, y: 0,
+            width: sidebar_w, height: rows,
+            fg: label_dim, bg: sidebar_bg,
+            border: false,
+        },
+
+        // sidebar label
+        DrawCommand::Text {
+            x: 2, y: 1,
+            max_width: sidebar_w.saturating_sub(4),
+            content: "files".into(),
+            fg: label_dim, bg: Some(sidebar_bg),
+            bold: false, italic: false,
+        },
+
+        // editor label
+        DrawCommand::Text {
+            x: sidebar_w + 2, y: 1,
+            max_width: cols.saturating_sub(sidebar_w + 4),
+            content: "ribbon.".into(),
+            fg: label_pink, bg: None,
+            bold: true, italic: false,
+        },
+    ]
 }

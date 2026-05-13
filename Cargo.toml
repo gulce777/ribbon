@@ -2,7 +2,7 @@
 members = [
     "crates/ribbon-core",
     "crates/ribbon-buffer",
-    "crates/ribbon-renderer",
+    "crates/ribbon-tui",
     "crates/ribbon-app",
 ]
 resolver = "2"
@@ -13,10 +13,10 @@ edition = "2024"
 license = "Unlicense"
 
 [workspace.dependencies]
-ribbon-core = { path = "crates/ribbon-core" }
-ribbon-buffer = { path = "crates/ribbon-buffer" }
-ribbon-renderer = { path = "crates/ribbon-renderer" }
+ribbon-core    = { path = "crates/ribbon-core" }
+ribbon-buffer  = { path = "crates/ribbon-buffer" }
+ribbon-tui     = { path = "crates/ribbon-tui" }
 
-thiserror = "2.0.18"
-wgpu = "29.0.3"
-winit = "0.30.13"
+thiserror  = "2.0.18"
+ratatui    = "0.29"
+crossterm  = "0.28"

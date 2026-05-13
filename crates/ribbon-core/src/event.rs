@@ -1,11 +1,10 @@
 //! the system of the editor.
 //!
 //! this module defines every action that can wake the editor up from its idle state.
-//! we do not leak `winit` or os-specific types here. everything is normalized into
+//! we do not leak `crossterm` or os-specific types here. everything is normalized into
 //! pure data that the lua userland can consume.
 
 use crate::primitives::{Point, Size};
-use std::path::PathBuf;
 
 /// represents the state of keyboard modifiers during an event.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
@@ -28,15 +27,15 @@ impl Modifiers {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Event {
     /// a normalized keypress.
-    /// rust translates raw hardware keys into simple strings like "j", "<c-w>", or "<esc>".
+    /// rust translates raw terminal keys into simple strings like "j", "<c-w>", or "<esc>".
     /// lua takes this string and runs it through the chord engine.
     KeyPress(String),
 
-    /// the window was resized.
-    /// taffy needs to recalculate the layout and lua needs to redraw the panels.
+    /// the terminal was resized.
+    /// the layout engine needs to recalculate and lua needs to redraw the panels.
     Resize(Size),
 
-    /// the mouse moved to a new local coordinate.
+    /// the mouse moved to a new local coordinate (cell units).
     MouseMove(Point),
 
     /// a mouse button was pressed.
@@ -62,14 +61,10 @@ pub enum Event {
     },
 
     /// a scheduled timer finished.
-    /// this is the backbone of lua's asynchronous chord timeout mechanism
+    /// this is the backbone of lua's asynchronous chord timeout mechanism.
     Timeout(usize),
 
-    /// a file was physically dragged and dropped into the editor window.
-    FileDrop(PathBuf),
-
     /// the editor gained or lost os-level focus.
-    /// useful for auto-saving or dimming the interface.
     FocusGained,
     FocusLost,
 
