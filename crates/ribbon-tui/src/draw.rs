@@ -30,4 +30,13 @@ pub enum DrawCommand {
         bold: bool,
         italic: bool,
     },
+
+    /// positions the terminal's physical cursor (the blinking block/line).
+    /// emit this once per frame for the primary cursor, or omit to hide it.
+    /// all visual cursor rendering (block highlight, selection shading) is
+    /// done through normal draw commands. only the blink position needs rust.
+    SetCursor {
+        x: u16,
+        y: u16,
+    },
 }

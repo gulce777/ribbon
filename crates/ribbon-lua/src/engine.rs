@@ -1,47 +1,89 @@
 //!  the single entry point for all lua interaction.
 
 use std::{
-    path::Path,
+    collections::HashMap,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
 };
 
 use mlua::prelude::*;
+use ribbon_buffer::RopeBuffer;
 use ribbon_core::{
     Result, RibbonError,
+    buffer::BufferApi,
     color::Color,
     event::Event,
-    id::NodeId,
+    id::{BufferId, NodeId},
     layout::{Constraint, Direction, NodeStyle},
+    primitives::{Position, Range},
 };
 use ribbon_tui::{DrawCommand, LayoutEngine};
 
-#[derive(Debug, Default, Clone)]
-pub struct CursorState {
-    /// current line, 1-based.
-    pub line: usize,
-    /// current column, 1-based.
-    pub col: usize,
+// ---------------------------------------------------------------------------
+// buffer store
+// ---------------------------------------------------------------------------
+
+struct BufferEntry {
+    buffer: RopeBuffer,
+    path:   Option<PathBuf>,
 }
+
+struct BufferStore {
+    entries: HashMap<usize, BufferEntry>,
+    next_id: usize,
+}
+
+impl BufferStore {
+    fn new() -> Self { Self { entries: HashMap::new(), next_id: 0 } }
+
+    fn alloc(&mut self) -> usize { let id = self.next_id; self.next_id += 1; id }
+
+    fn open(&mut self, path: &Path) -> Result<usize> {
+        let text = std::fs::read_to_string(path).map_err(RibbonError::Io)?;
+        let id = self.alloc();
+        self.entries.insert(id, BufferEntry {
+            buffer: RopeBuffer::new(BufferId::new(id), &text),
+            path:   Some(path.to_path_buf()),
+        });
+        Ok(id)
+    }
+
+    fn new_empty(&mut self) -> usize {
+        let id = self.alloc();
+        self.entries.insert(id, BufferEntry {
+            buffer: RopeBuffer::empty(BufferId::new(id)),
+            path:   None,
+        });
+        id
+    }
+
+    fn get(&self, id: usize) -> LuaResult<&BufferEntry> {
+        self.entries.get(&id)
+            .ok_or_else(|| LuaError::RuntimeError(format!("buffer {id} not open")))
+    }
+
+    fn get_mut(&mut self, id: usize) -> LuaResult<&mut BufferEntry> {
+        self.entries.get_mut(&id)
+            .ok_or_else(|| LuaError::RuntimeError(format!("buffer {id} not open")))
+    }
+}
+
+// ---------------------------------------------------------------------------
 
 pub struct LuaEngine {
     lua: Lua,
-    #[allow(dead_code)]
-    layout: Arc<Mutex<LayoutEngine>>,
-    pub cursor: Arc<Mutex<CursorState>>,
+    #[allow(dead_code)] layout:  Arc<Mutex<LayoutEngine>>,
+    #[allow(dead_code)] buffers: Arc<Mutex<BufferStore>>,
 }
 
 impl LuaEngine {
     /// creates the lua vm and registers the `ribbon._rust.*` api.
     pub fn new() -> Result<Self> {
-        let lua = Lua::new();
-        let layout = Arc::new(Mutex::new(LayoutEngine::new()));
-        let cursor = Arc::new(Mutex::new(CursorState::default()));
-        register_rust_api(&lua, Arc::clone(&layout), Arc::clone(&cursor))?;
-        Ok(Self {
-            lua,
-            layout,
-            cursor,
-        })
+        let lua     = Lua::new();
+        let layout  = Arc::new(Mutex::new(LayoutEngine::new()));
+        let buffers = Arc::new(Mutex::new(BufferStore::new()));
+        register_rust_api(&lua, Arc::clone(&layout), Arc::clone(&buffers))?;
+        Ok(Self { lua, layout, buffers })
     }
 
     /// loads `{path}/core/init.lua` then all `{path}/default/*.lua` files in order.
@@ -151,8 +193,8 @@ impl LuaEngine {
 
 fn register_rust_api(
     lua: &Lua,
-    layout: Arc<Mutex<LayoutEngine>>,
-    cursor: Arc<Mutex<CursorState>>,
+    layout:  Arc<Mutex<LayoutEngine>>,
+    buffers: Arc<Mutex<BufferStore>>,
 ) -> Result<()> {
     let rust_table = lua
         .create_table()
@@ -318,28 +360,6 @@ fn register_rust_api(
             .map_err(|e| RibbonError::Script(e.to_string()))?;
     }
 
-    // cursor_line() -> number
-    {
-        let c = Arc::clone(&cursor);
-        let f = lua
-            .create_function(move |_, ()| Ok(c.lock().unwrap().line))
-            .map_err(|e| RibbonError::Script(e.to_string()))?;
-        rust_table
-            .set("cursor_line", f)
-            .map_err(|e| RibbonError::Script(e.to_string()))?;
-    }
-
-    // ── cursor_col() → number ──────────────────────────────────────────────
-    {
-        let c = Arc::clone(&cursor);
-        let f = lua
-            .create_function(move |_, ()| Ok(c.lock().unwrap().col))
-            .map_err(|e| RibbonError::Script(e.to_string()))?;
-        rust_table
-            .set("cursor_col", f)
-            .map_err(|e| RibbonError::Script(e.to_string()))?;
-    }
-
     // log(level, msg)
     {
         let f = lua
@@ -355,6 +375,126 @@ fn register_rust_api(
         rust_table
             .set("log", f)
             .map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // ── buffer API ────────────────────────────────────────────────────────────
+
+    // buffer_open(path) -> id
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, path: String| {
+            b.lock().unwrap()
+                .open(Path::new(&path))
+                .map_err(|e| LuaError::RuntimeError(e.to_string()))
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_open", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_new() -> id
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, ()| {
+            Ok(b.lock().unwrap().new_empty())
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_new", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_close(id)
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, id: usize| {
+            b.lock().unwrap().entries.remove(&id); Ok(())
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_close", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_line_count(id) -> number
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, id: usize| {
+            Ok(b.lock().unwrap().get(id)?.buffer.line_count())
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_line_count", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_get_line(id, line_0based) -> string (no trailing newline)
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, (id, line): (usize, usize)| {
+            let store = b.lock().unwrap();
+            let entry = store.get(id)?;
+            let s = entry.buffer.get_line(line)
+                .map_err(|e| LuaError::RuntimeError(e.to_string()))?;
+            // strip trailing \n / \r\n so Lua receives a clean string.
+            Ok(s.trim_end_matches(['\n', '\r']).to_string())
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_get_line", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_insert(id, line_0, col_0, text) — inserts text at (line, col) (0-based)
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, (id, line, col, text): (usize, usize, usize, String)| {
+            let mut store = b.lock().unwrap();
+            let entry = store.get_mut(id)?;
+            entry.buffer
+                .insert_text(Position::new(line, col), &text)
+                .map_err(|e| LuaError::RuntimeError(e.to_string()))
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_insert", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_delete(id, line_0, col_start_0, col_end_0) — deletes chars in range (same line)
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, (id, line, col_s, col_e): (usize, usize, usize, usize)| {
+            let mut store = b.lock().unwrap();
+            let entry = store.get_mut(id)?;
+            let range = Range::new(Position::new(line, col_s), Position::new(line, col_e));
+            entry.buffer
+                .delete_range(range)
+                .map_err(|e| LuaError::RuntimeError(e.to_string()))
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_delete", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_path(id) -> string|nil
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, id: usize| {
+            let store = b.lock().unwrap();
+            Ok(store.entries.get(&id)
+                .and_then(|e| e.path.as_ref())
+                .map(|p| p.to_string_lossy().to_string()))
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_path", f).map_err(|e| RibbonError::Script(e.to_string()))?;
+    }
+
+    // buffer_save(id, path?) — saves to original path or override
+    {
+        let b = Arc::clone(&buffers);
+        let f = lua.create_function(move |_, (id, path): (usize, Option<String>)| {
+            let mut store = b.lock().unwrap();
+            let override_path = path.as_deref().map(Path::new).map(|p| p.to_path_buf());
+            let entry = store.get_mut(id)?;
+            let save_path = override_path.as_deref()
+                .or(entry.path.as_deref())
+                .ok_or_else(|| LuaError::RuntimeError(format!("buffer {id} has no path")))?;
+            // collect all lines into a single string
+            let mut out = String::new();
+            for i in 0..entry.buffer.line_count() {
+                if let Ok(line) = entry.buffer.get_line(i) {
+                    out.push_str(&line);
+                }
+            }
+            std::fs::write(save_path, &out)
+                .map_err(|e| LuaError::RuntimeError(e.to_string()))?;
+            if let Some(p) = override_path {
+                entry.path = Some(p);
+            }
+            Ok(())
+        }).map_err(|e| RibbonError::Script(e.to_string()))?;
+        rust_table.set("buffer_save", f).map_err(|e| RibbonError::Script(e.to_string()))?;
     }
 
     lua.globals()
@@ -453,6 +593,10 @@ fn lua_table_to_draw_command(t: &LuaTable) -> Option<DrawCommand> {
                 italic: t.get("italic").unwrap_or(false),
             })
         }
+        "cursor" => Some(DrawCommand::SetCursor {
+            x: t.get("x").unwrap_or(0),
+            y: t.get("y").unwrap_or(0),
+        }),
         _ => None,
     }
 }

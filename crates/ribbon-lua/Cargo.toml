@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-ribbon-core.workspace = true
-ribbon-tui.workspace = true
-mlua.workspace = true
+ribbon-core.workspace   = true
+ribbon-buffer.workspace = true
+ribbon-tui.workspace    = true
+mlua.workspace          = true

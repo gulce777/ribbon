@@ -6,7 +6,7 @@
 use std::time::Duration;
 
 use ratatui::{
-    layout::Rect,
+    layout::{Position, Rect},
     style::{Color as RColor, Modifier, Style},
     text::Span,
     widgets::{Block, Borders, Paragraph},
@@ -61,6 +61,8 @@ impl Renderer {
 }
 
 fn render(frame: &mut Frame, commands: &[DrawCommand]) {
+    let mut cursor: Option<(u16, u16)> = None;
+
     for cmd in commands {
         match cmd {
             DrawCommand::Clear(c) => {
@@ -90,7 +92,14 @@ fn render(frame: &mut Frame, commands: &[DrawCommand]) {
                 let para = Paragraph::new(Span::styled(content.as_str(), style));
                 frame.render_widget(para, area);
             }
+            DrawCommand::SetCursor { x, y } => {
+                cursor = Some((*x, *y));
+            }
         }
+    }
+
+    if let Some((x, y)) = cursor {
+        frame.set_cursor_position(Position::new(x, y));
     }
 }
 
